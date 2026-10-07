@@ -12,6 +12,9 @@ import type { RepeatMode } from "./types";
 export const audio = new Audio();
 audio.preload = "auto";
 (audio as HTMLAudioElement & { playsInline?: boolean }).playsInline = true;
+// При изменении скорости тон не должен «плыть» (по умолчанию так и есть, но Safari требует префикс).
+audio.preservesPitch = true;
+(audio as HTMLAudioElement & { webkitPreservesPitch?: boolean }).webkitPreservesPitch = true;
 
 export const queue = signal<Q.Queue>(Q.emptyQueue());
 export const shuffleOn = signal(false);
@@ -308,11 +311,18 @@ export function cycleRepeat(): void {
   saveState();
 }
 
-export function setRate(r: number): void {
-  rate.value = r;
-  audio.defaultPlaybackRate = r;
-  audio.playbackRate = r;
-  saveState();
+export const RATE_MIN = 0.5;
+export const RATE_MAX = 2;
+export const RATE_STEP = 0.05;
+
+/** Скорость с шагом 0.05 в пределах, которые iOS играет со звуком. `persist: false` — на лету при перетаскивании. */
+export function setRate(r: number, persist = true): void {
+  const v = Math.round(Math.min(RATE_MAX, Math.max(RATE_MIN, r)) / RATE_STEP) * RATE_STEP;
+  const clean = Number(v.toFixed(2));
+  rate.value = clean;
+  audio.defaultPlaybackRate = clean;
+  audio.playbackRate = clean;
+  if (persist) saveState();
 }
 
 export function jumpTo(index: number): void {
@@ -326,6 +336,24 @@ export function playNext(id: string): void {
   if (!currentTrackId.value) return playQueue([id], id);
   queue.value = Q.playNext(queue.value, id);
   preloadNextSoon();
+  saveState();
+}
+
+/** Несколько треков сразу «следом» — в том же порядке, в котором переданы. */
+export function playNextMany(ids: string[]): void {
+  if (ids.length === 0) return;
+  if (!currentTrackId.value) return playQueue(ids, ids[0]);
+  let q = queue.value;
+  for (let i = ids.length - 1; i >= 0; i--) q = Q.playNext(q, ids[i]);
+  queue.value = q;
+  preloadNextSoon();
+  saveState();
+}
+
+export function enqueueMany(ids: string[]): void {
+  if (ids.length === 0) return;
+  if (!currentTrackId.value) return playQueue(ids, ids[0]);
+  queue.value = ids.reduce((q, id) => Q.enqueue(q, id), queue.value);
   saveState();
 }
 

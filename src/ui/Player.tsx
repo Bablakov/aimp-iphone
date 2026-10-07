@@ -1,3 +1,4 @@
+import { signal } from "@preact/signals";
 import { useEffect, useRef, useState } from "preact/hooks";
 import { fmtTime } from "../core/format";
 import * as E from "../core/eq";
@@ -97,12 +98,59 @@ function pickSleep(): void {
   });
 }
 
-const RATES = [0.5, 0.75, 1, 1.25, 1.5, 2];
-function pickRate(): void {
-  openSheet({
-    title: "Скорость",
-    items: RATES.map((r) => ({ label: r === 1 ? "Обычная (1×)" : `${r}×`, checked: P.rate.value === r, onSelect: () => P.setRate(r) })),
-  });
+// ───────── скорость ─────────
+
+const speedOpen = signal(false);
+const RATE_PRESETS = [0.75, 1, 1.25, 1.5, 2];
+const fmtRate = (r: number) => `${Number(r.toFixed(2))}×`;
+
+function SpeedSheet() {
+  const r = P.rate.value;
+  const pct = ((r - P.RATE_MIN) / (P.RATE_MAX - P.RATE_MIN)) * 100;
+  const close = () => (speedOpen.value = false);
+  return (
+    <div class="backdrop" onClick={close}>
+      <div class="sheet speed" onClick={(e) => e.stopPropagation()}>
+        <div class="sheet-head">
+          <div class="sheet-title">Скорость воспроизведения</div>
+        </div>
+        <div class="speed-value">{fmtRate(r)}</div>
+        <div class="speed-row">
+          <button class="icon-btn" onClick={() => P.setRate(r - P.RATE_STEP)} aria-label="Медленнее">
+            <Icon name="minus" />
+          </button>
+          <input
+            type="range"
+            min={P.RATE_MIN}
+            max={P.RATE_MAX}
+            step={P.RATE_STEP}
+            value={r}
+            style={{ "--p": `${pct}%` }}
+            aria-label="Скорость"
+            onInput={(e) => P.setRate(Number((e.currentTarget as HTMLInputElement).value), false)}
+            onChange={() => P.saveState()}
+          />
+          <button class="icon-btn" onClick={() => P.setRate(r + P.RATE_STEP)} aria-label="Быстрее">
+            <Icon name="plus" />
+          </button>
+        </div>
+        <div class="speed-scale">
+          <span>{fmtRate(P.RATE_MIN)}</span>
+          <span>{fmtRate(P.RATE_MAX)}</span>
+        </div>
+        <div class="chips center">
+          {RATE_PRESETS.map((v) => (
+            <button key={v} class={`chip ${Math.abs(r - v) < 0.001 ? "on" : ""}`} onClick={() => P.setRate(v)}>
+              {fmtRate(v)}
+            </button>
+          ))}
+        </div>
+        <button class="sheet-cancel" onClick={close}>
+          Готово
+        </button>
+      </div>
+    </div>
+  );
 }
 
 // ───────── «Сейчас играет» ─────────
@@ -162,9 +210,9 @@ export function NowPlaying() {
           </button>
         </div>
         <div class="extras">
-          <button class={`chip-btn ${P.rate.value !== 1 ? "on" : ""}`} onClick={pickRate}>
+          <button class={`chip-btn ${P.rate.value !== 1 ? "on" : ""}`} onClick={() => (speedOpen.value = true)}>
             <Icon name="speed" size={20} />
-            <span>{P.rate.value}×</span>
+            <span>{fmtRate(P.rate.value)}</span>
           </button>
           <button class={`chip-btn ${E.eq.value.enabled ? "on" : ""}`} onClick={() => openLayer({ type: "eq" })}>
             <Icon name="eq" size={20} />
@@ -180,6 +228,7 @@ export function NowPlaying() {
           </button>
         </div>
       </div>
+      {speedOpen.value && <SpeedSheet />}
     </div>
   );
 }

@@ -149,8 +149,18 @@ button:disabled {
   min-height: calc(var(--sat) + 56px);
 }
 .top-side {
-  width: 52px;
+  width: 96px;
   display: flex;
+  align-items: center;
+}
+.text-btn {
+  min-height: 44px;
+  padding: 0 8px;
+  color: var(--accent);
+  font-weight: 500;
+}
+.text-btn:active {
+  opacity: 0.6;
 }
 .top-side.right {
   justify-content: flex-end;
@@ -569,7 +579,8 @@ button:disabled {
   text-overflow: ellipsis;
 }
 .seek input,
-.preamp input {
+.preamp input,
+.speed-row input {
   width: 100%;
   height: 28px;
   margin: 0;
@@ -579,13 +590,15 @@ button:disabled {
   touch-action: none;
 }
 .seek input::-webkit-slider-runnable-track,
-.preamp input::-webkit-slider-runnable-track {
+.preamp input::-webkit-slider-runnable-track,
+.speed-row input::-webkit-slider-runnable-track {
   height: 4px;
   border-radius: 2px;
   background: linear-gradient(to right, var(--accent) var(--p, 0%), var(--line) var(--p, 0%));
 }
 .seek input::-webkit-slider-thumb,
-.preamp input::-webkit-slider-thumb {
+.preamp input::-webkit-slider-thumb,
+.speed-row input::-webkit-slider-thumb {
   -webkit-appearance: none;
   width: 18px;
   height: 18px;
@@ -595,13 +608,15 @@ button:disabled {
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
 }
 .seek input::-moz-range-track,
-.preamp input::-moz-range-track {
+.preamp input::-moz-range-track,
+.speed-row input::-moz-range-track {
   height: 4px;
   border-radius: 2px;
   background: linear-gradient(to right, var(--accent) var(--p, 0%), var(--line) var(--p, 0%));
 }
 .seek input::-moz-range-thumb,
-.preamp input::-moz-range-thumb {
+.preamp input::-moz-range-thumb,
+.speed-row input::-moz-range-thumb {
   width: 18px;
   height: 18px;
   border: 0;
@@ -1031,4 +1046,89 @@ button:disabled {
   height: 100%;
   background: var(--accent);
   transition: width 0.2s;
+}
+
+/* ───────── выбор нескольких треков ───────── */
+
+.checkbox {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 2px solid var(--dim);
+  color: #04101f;
+}
+.checkbox.on {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.row.selected {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+.row.disabled {
+  opacity: 0.5;
+}
+.sel-bar {
+  display: flex;
+  background: var(--bg2);
+  border-top: 1px solid var(--line);
+  padding: 4px 4px 6px;
+}
+.sel-action {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 8px 2px;
+  border-radius: 10px;
+  font-size: 11px;
+  text-align: center;
+}
+.sel-action:active:not(:disabled) {
+  background: var(--card);
+}
+.sel-action.danger {
+  color: var(--danger);
+}
+.pick-footer {
+  padding: 10px 16px calc(var(--sab) + 10px);
+  background: var(--bg2);
+  border-top: 1px solid var(--line);
+}
+
+/* ───────── скорость ───────── */
+
+.speed-value {
+  text-align: center;
+  font-size: 40px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  padding: 4px 0 2px;
+}
+.speed-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 8px;
+}
+.speed-row input {
+  flex: 1;
+  min-width: 0;
+}
+.speed-scale {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 64px;
+  font-size: 12px;
+  color: var(--dim);
+}
+.chips.center {
+  justify-content: center;
+  flex-wrap: wrap;
+  padding: 14px 8px 8px;
 }

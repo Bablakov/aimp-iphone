@@ -160,6 +160,11 @@ export async function removeFromPlaylist(id: string, index: number): Promise<voi
   if (p) await savePlaylist({ ...p, trackIds: p.trackIds.filter((_, i) => i !== index) });
 }
 
+export async function removeManyFromPlaylist(id: string, trackIds: ReadonlySet<string>): Promise<void> {
+  const p = playlists.value.find((x) => x.id === id);
+  if (p) await savePlaylist({ ...p, trackIds: p.trackIds.filter((t) => !trackIds.has(t)) });
+}
+
 export async function movePlaylistTrack(id: string, from: number, to: number): Promise<void> {
   const p = playlists.value.find((x) => x.id === id);
   if (!p || to < 0 || to >= p.trackIds.length) return;

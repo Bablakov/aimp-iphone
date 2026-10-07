@@ -3,6 +3,7 @@ import { Dialogs } from "./dialogs";
 import { Icon, type IconName } from "./Icon";
 import { importProgress } from "./importer";
 import { layers, selectTab, tab, type TabName } from "./nav";
+import { PickerLayer } from "./Picker";
 import { EqLayer, MiniPlayer, NowPlaying, QueueLayer } from "./Player";
 import { AlbumsScreen, ArtistsScreen, PlaylistsScreen, renderDetail, SettingsScreen, TracksScreen } from "./screens";
 
@@ -77,6 +78,7 @@ export function App() {
         if (l.type === "player") return <NowPlaying key={`${i}-p`} />;
         if (l.type === "queue") return <QueueLayer key={`${i}-q`} />;
         if (l.type === "eq") return <EqLayer key={`${i}-e`} />;
+        if (l.type === "picker") return <PickerLayer key={`${i}-k`} playlistId={l.playlistId} />;
         return null;
       })}
       <ImportBanner />

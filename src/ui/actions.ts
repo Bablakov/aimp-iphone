@@ -7,7 +7,7 @@ import { openLayer } from "./nav";
 const norm = (s: string) => s.trim().toLowerCase();
 
 /** Выбор плейлиста для добавления треков (или создание нового). */
-export function pickPlaylist(trackIds: string[]): void {
+export function pickPlaylist(trackIds: string[], onDone?: () => void): void {
   openSheet({
     title: "Добавить в плейлист",
     items: [
@@ -18,7 +18,8 @@ export function pickPlaylist(trackIds: string[]): void {
           const name = await askText("Новый плейлист", "", "Название");
           if (!name) return;
           await createPlaylist(name, trackIds);
-          showToast(`Создан «${name}»`);
+          showToast(`Создан «${name}»: ${trackIds.length}`);
+          onDone?.();
         },
       },
       ...playlists.value.map((p): SheetItem => ({
@@ -27,6 +28,7 @@ export function pickPlaylist(trackIds: string[]): void {
         onSelect: async () => {
           const n = await addToPlaylist(p.id, trackIds);
           showToast(n ? `Добавлено в «${p.name}»: ${n}` : `Уже есть в «${p.name}»`);
+          onDone?.();
         },
       })),
     ],

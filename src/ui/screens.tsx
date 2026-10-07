@@ -25,6 +25,8 @@ import { askText, confirmDialog, openSheet } from "./dialogs";
 import { Icon, type IconName } from "./Icon";
 import { pickAndImport } from "./importer";
 import { closeLayer, openLayer, type Layer } from "./nav";
+import { selection, startSelect } from "./select";
+import { SelectionBar, SelectionHeader } from "./selection";
 import { TRACK_ROW_H, TrackRow } from "./TrackRow";
 import { VirtualList } from "./VirtualList";
 
@@ -189,8 +191,12 @@ export function TracksScreen() {
       })),
     });
 
+  const selecting = selection.value !== null;
   return (
     <section class="screen">
+      {selecting ? (
+        <SelectionHeader order={ids} />
+      ) : (
       <Header
         title="Треки"
         subtitle={all.length ? `${tracksWord(all.length)} · ${fmtTotal(all.reduce((s, t) => s + t.duration, 0))}` : undefined}
@@ -200,11 +206,19 @@ export function TracksScreen() {
           </button>
         }
         right={
-          <button class="icon-btn accent" onClick={pickAndImport} aria-label="Добавить музыку">
-            <Icon name="plus" />
-          </button>
+          <>
+            {all.length > 0 && (
+              <button class="icon-btn" onClick={() => startSelect()} aria-label="Выбрать несколько">
+                <Icon name="select" />
+              </button>
+            )}
+            <button class="icon-btn accent" onClick={pickAndImport} aria-label="Добавить музыку">
+              <Icon name="plus" />
+            </button>
+          </>
         }
       />
+      )}
       {all.length > 0 && (
         <div class="search">
           <Icon name="search" size={18} />
@@ -243,6 +257,7 @@ export function TracksScreen() {
           return <TrackRow track={t} onPlay={() => P.playQueue(ids, t.id)} onMenu={() => trackMenu(t)} />;
         }}
       />
+      {selecting && <SelectionBar order={ids} />}
     </section>
   );
 }
@@ -377,12 +392,32 @@ function TrackListLayer(props: {
   numbered?: boolean;
   playlistId?: string;
   emptyText?: string;
+  emptyAction?: preact.ComponentChildren;
 }) {
   const { list } = props;
   const ids = list.map((t) => t.id);
+  const selecting = selection.value !== null;
   return (
     <section class="screen layer-screen">
-      <Header title={props.title} subtitle={props.subtitle} left={<BackButton />} right={props.right} />
+      {selecting ? (
+        <SelectionHeader order={ids} />
+      ) : (
+        <Header
+          title={props.title}
+          subtitle={props.subtitle}
+          left={<BackButton />}
+          right={
+            <>
+              {list.length > 0 && (
+                <button class="icon-btn" onClick={() => startSelect()} aria-label="Выбрать несколько">
+                  <Icon name="select" />
+                </button>
+              )}
+              {props.right}
+            </>
+          }
+        />
+      )}
       <VirtualList
         count={list.length}
         rowHeight={TRACK_ROW_H}
@@ -392,7 +427,7 @@ function TrackListLayer(props: {
             {list.length > 0 && <PlayButtons ids={ids} />}
           </>
         }
-        empty={<Empty icon="music" title="Здесь пусто" text={props.emptyText} />}
+        empty={<Empty icon="music" title="Здесь пусто" text={props.emptyText} action={props.emptyAction} />}
         row={(i) => {
           const t = list[i];
           return (
@@ -406,6 +441,7 @@ function TrackListLayer(props: {
           );
         }}
       />
+      {selecting && <SelectionBar order={ids} playlistId={props.playlistId} />}
     </section>
   );
 }
@@ -485,17 +521,28 @@ export function PlaylistLayer({ keyId }: { keyId: string }) {
         },
       ],
     });
+  const addButton = pl && (
+    <button class="btn primary" onClick={() => openLayer({ type: "picker", playlistId: pl.id })}>
+      <Icon name="plus" size={20} /> Добавить треки
+    </button>
+  );
   return (
     <TrackListLayer
       title={pl?.name ?? "Плейлист"}
       subtitle={`${tracksWord(list.length)} · ${fmtTotal(list.reduce((s, t) => s + t.duration, 0))}`}
       list={list}
       playlistId={pl?.id}
-      emptyText="Добавьте треки через меню «⋯» → «В плейлист»."
+      emptyText="Выберите треки из библиотеки — можно сразу несколько."
+      emptyAction={addButton}
       right={
-        <button class="icon-btn" onClick={menu} aria-label="Меню плейлиста">
-          <Icon name="more" />
-        </button>
+        <>
+          <button class="icon-btn accent" onClick={() => pl && openLayer({ type: "picker", playlistId: pl.id })} aria-label="Добавить треки в плейлист">
+            <Icon name="plus" />
+          </button>
+          <button class="icon-btn" onClick={menu} aria-label="Меню плейлиста">
+            <Icon name="more" />
+          </button>
+        </>
       }
     />
   );
