@@ -203,7 +203,11 @@ audio.addEventListener("timeupdate", () => {
   }
   if (now - lastSave > 5000) saveState();
 });
-audio.addEventListener("ratechange", updatePositionState);
+audio.addEventListener("ratechange", () => {
+  // Таймкод при смене скорости не должен «подтягиваться» к устаревшему значению.
+  time.value = audio.currentTime;
+  updatePositionState();
+});
 audio.addEventListener("seeked", updatePositionState);
 audio.addEventListener("error", () => {
   if (audio.getAttribute("src")) handleBroken();
@@ -320,9 +324,23 @@ export function setRate(r: number, persist = true): void {
   const v = Math.round(Math.min(RATE_MAX, Math.max(RATE_MIN, r)) / RATE_STEP) * RATE_STEP;
   const clean = Number(v.toFixed(2));
   rate.value = clean;
-  audio.defaultPlaybackRate = clean;
-  audio.playbackRate = clean;
-  if (persist) saveState();
+  // Каждая смена playbackRate на iOS перезапускает time-stretch и сдвигает позицию: при
+  // перетаскивании ползунка десятки смен подряд дают «откаты» и скачки вперёд. Применяем
+  // скорость к <audio> только после паузы в перетаскивании.
+  if (rateTimer) clearTimeout(rateTimer);
+  if (persist) {
+    applyRate();
+    saveState();
+  } else rateTimer = setTimeout(applyRate, 200);
+}
+
+let rateTimer: ReturnType<typeof setTimeout> | undefined;
+
+function applyRate(): void {
+  rateTimer = undefined;
+  const v = rate.value;
+  if (audio.defaultPlaybackRate !== v) audio.defaultPlaybackRate = v;
+  if (audio.playbackRate !== v) audio.playbackRate = v;
 }
 
 export function jumpTo(index: number): void {
