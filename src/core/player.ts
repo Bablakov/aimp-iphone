@@ -315,11 +315,11 @@ export function cycleRepeat(): void {
   saveState();
 }
 
-export const RATE_MIN = 0.5;
-export const RATE_MAX = 2;
+export const RATE_MIN = 0.1;
+export const RATE_MAX = 3;
 export const RATE_STEP = 0.05;
 
-/** Скорость с шагом 0.05 в пределах, которые iOS играет со звуком. `persist: false` — на лету при перетаскивании. */
+/** Скорость с шагом 0.05 в пределах 0.1–3×. `persist: false` — на лету при перетаскивании. */
 export function setRate(r: number, persist = true): void {
   const v = Math.round(Math.min(RATE_MAX, Math.max(RATE_MIN, r)) / RATE_STEP) * RATE_STEP;
   const clean = Number(v.toFixed(2));

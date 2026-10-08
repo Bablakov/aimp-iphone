@@ -14,6 +14,8 @@ render(<App />, document.getElementById("app")!);
 
 async function boot(): Promise<void> {
   try {
+    // Просим браузер не вычищать данные (треки и плейлисты) при нехватке места.
+    void navigator.storage?.persist?.().catch(() => {});
     await Promise.all([initStore(), loadEq()]);
     await initPlayer();
   } catch (e) {

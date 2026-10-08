@@ -16,13 +16,16 @@ interface Schema extends DBSchema {
 let dbPromise: Promise<IDBPDatabase<Schema>> | null = null;
 
 export function db(): Promise<IDBPDatabase<Schema>> {
+  // Версия схемы только растёт, upgrade ничего не удаляет и не пересоздаёт: библиотека и плейлисты
+  // из прошлых версий приложения остаются на месте. Новые хранилища добавлять под `oldVersion < N`.
   dbPromise ??= openDB<Schema>("aimp-web", 1, {
     upgrade(d) {
-      d.createObjectStore("tracks", { keyPath: "id" });
-      d.createObjectStore("blobs");
-      d.createObjectStore("covers");
-      d.createObjectStore("playlists", { keyPath: "id" });
-      d.createObjectStore("kv");
+      const stores = ["tracks", "blobs", "covers", "playlists", "kv"] as const;
+      for (const name of stores) {
+        if (d.objectStoreNames.contains(name)) continue;
+        if (name === "tracks" || name === "playlists") d.createObjectStore(name, { keyPath: "id" });
+        else d.createObjectStore(name);
+      }
     },
   });
   return dbPromise;

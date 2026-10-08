@@ -101,7 +101,7 @@ function pickSleep(): void {
 // ───────── скорость ─────────
 
 const speedOpen = signal(false);
-const RATE_PRESETS = [0.75, 1, 1.25, 1.5, 2];
+const RATE_PRESETS = [0.5, 0.75, 1, 1.5, 2, 3];
 const fmtRate = (r: number) => `${Number(r.toFixed(2))}×`;
 
 function SpeedSheet() {

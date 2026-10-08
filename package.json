@@ -1,6 +1,6 @@
 {
   "name": "aimp-iphone",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "private": true,
   "type": "module",
   "description": "Музыкальный плеер в стиле AIMP для iPhone — PWA, музыка хранится на телефоне",
