@@ -10,6 +10,8 @@ export interface ImportReport {
   /** Форматы, которые этот браузер не умеет играть (ogg, wma, ape…). */
   unsupported: string[];
   failed: string[];
+  /** id всех треков из выбранных файлов, в порядке выбора (включая уже бывшие в библиотеке). */
+  ids: string[];
 }
 
 export type ImportProgress = (done: number, total: number, name: string) => void;
@@ -74,8 +76,8 @@ async function makeThumb(pic: IPicture): Promise<Blob> {
 const num = (v: number | null | undefined) => (typeof v === "number" && Number.isFinite(v) ? v : 0);
 
 export async function importFiles(files: File[], onProgress?: ImportProgress): Promise<ImportReport> {
-  const report: ImportReport = { added: 0, duplicates: 0, unsupported: [], failed: [] };
-  const sigs = new Set(tracks.value.map((t) => t.sig));
+  const report: ImportReport = { added: 0, duplicates: 0, unsupported: [], failed: [], ids: [] };
+  const sigs = new Map(tracks.value.map((t) => [t.sig, t.id]));
   const knownCovers = new Set(tracks.value.map((t) => t.coverId).filter(Boolean) as string[]);
   let batch: Track[] = [];
   let lastFlush = performance.now();
@@ -90,8 +92,10 @@ export async function importFiles(files: File[], onProgress?: ImportProgress): P
     const file = files[i];
     onProgress?.(i, files.length, file.name);
     const sig = `${file.name}|${file.size}`;
-    if (sigs.has(sig)) {
+    const known = sigs.get(sig);
+    if (known) {
       report.duplicates++;
+      report.ids.push(known);
       continue;
     }
     const mime = mimeFromName(file.name, file.type);
@@ -138,7 +142,8 @@ export async function importFiles(files: File[], onProgress?: ImportProgress): P
       // Файл копируется во внутреннее хранилище приложения — оригинал можно не хранить.
       await DB.putTrack(track, file, cover);
       if (coverId) knownCovers.add(coverId);
-      sigs.add(sig);
+      sigs.set(sig, track.id);
+      report.ids.push(track.id);
       batch.push(track);
       report.added++;
       if (batch.length >= 25 || performance.now() - lastFlush > 400) flush();

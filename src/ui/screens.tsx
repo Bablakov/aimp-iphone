@@ -6,7 +6,6 @@ import {
   albums,
   artists,
   byTrackNo,
-  createPlaylist,
   movePlaylistTrack,
   playlists,
   removePlaylist,
@@ -23,7 +22,7 @@ import { trackMenu } from "./actions";
 import { Cover } from "./Cover";
 import { askText, confirmDialog, openSheet } from "./dialogs";
 import { Icon, type IconName } from "./Icon";
-import { pickAndImport } from "./importer";
+import { createPlaylistFlow, pickAndImport, pickAndImportToPlaylist } from "./importer";
 import { closeLayer, openLayer, type Layer } from "./nav";
 import { selection, startSelect } from "./select";
 import { SelectionBar, SelectionHeader } from "./selection";
@@ -331,10 +330,7 @@ export function ArtistsScreen() {
 
 export function PlaylistsScreen() {
   const list = playlists.value;
-  const create = async () => {
-    const name = await askText("Новый плейлист", "", "Название");
-    if (name) await createPlaylist(name);
-  };
+  const create = createPlaylistFlow;
   return (
     <section class="screen">
       <Header
@@ -522,7 +518,7 @@ export function PlaylistLayer({ keyId }: { keyId: string }) {
       ],
     });
   const addButton = pl && (
-    <button class="btn primary" onClick={() => openLayer({ type: "picker", playlistId: pl.id })}>
+    <button class="btn primary" onClick={() => pickAndImportToPlaylist(pl.id)}>
       <Icon name="plus" size={20} /> Добавить треки
     </button>
   );
@@ -532,11 +528,11 @@ export function PlaylistLayer({ keyId }: { keyId: string }) {
       subtitle={`${tracksWord(list.length)} · ${fmtTotal(list.reduce((s, t) => s + t.duration, 0))}`}
       list={list}
       playlistId={pl?.id}
-      emptyText="Выберите треки из библиотеки — можно сразу несколько."
+      emptyText="Добавьте файлы или папку целиком либо выберите треки из библиотеки."
       emptyAction={addButton}
       right={
         <>
-          <button class="icon-btn accent" onClick={() => pl && openLayer({ type: "picker", playlistId: pl.id })} aria-label="Добавить треки в плейлист">
+          <button class="icon-btn accent" onClick={() => pl && pickAndImportToPlaylist(pl.id)} aria-label="Добавить треки в плейлист">
             <Icon name="plus" />
           </button>
           <button class="icon-btn" onClick={menu} aria-label="Меню плейлиста">

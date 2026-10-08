@@ -30,6 +30,7 @@ const PATHS = {
   edit: "M12 20h9M16.5 3.5a2.1 2.1 0 1 1 3 3L7 19l-4 1 1-4z",
   addlist: "M3 6h12M3 12h12M3 18h8M18 15v6M15 18h6",
   select: "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM8 12.5l2.7 2.7L16 9.8",
+  folder: "M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z",
   playnext: "M3 6h10M3 12h10M3 18h6M16 9l5 3.5-5 3.5z",
 } as const;
 
